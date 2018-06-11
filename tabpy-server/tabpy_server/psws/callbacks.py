@@ -11,6 +11,7 @@ from common.endpoint_file_mgr import cleanup_endpoint_files, \
                         get_local_endpoint_file_path
 from common.util import format_exception
 from management.state import TabPyState, get_query_object_path
+from common.config import TABPY_QUERY_OBJECT_PATH
 
 from management import util
 
@@ -50,7 +51,7 @@ def init_ps_server(settings):
             object_version = obj_info['version']
             object_type = obj_info['type']
             object_path = get_query_object_path(
-                                settings['state_file_path'],
+                                os.environ['TABPY_STATE_PATH'],
                                 object_name, object_version)
         except Exception as e:
             log_error('Exception encounted when downloading object: %s, error: %s' % \
@@ -72,7 +73,7 @@ def init_model_evaluator(settings):
             object_version = obj_info['version']
             object_type = obj_info['type']
             object_path = get_query_object_path(
-                settings['state_file_path'],
+                os.environ['TABPY_STATE_PATH'],
                 object_name, object_version)
 
             log_info('Load endpoint: %s, version: %s, type: %s' % \
@@ -115,7 +116,7 @@ def _get_latest_service_state(settings, new_ps_state):
                 endpoint_info['version'] != existing_endpoint['version']:
             # Either a new endpoint or new endpoint version
             path_to_new_version = get_query_object_path(
-                settings['state_file_path'],
+                os.environ['TABPY_STATE_PATH'],
                 endpoint_name, endpoint_info['version'])
             endpoint_type = endpoint_info.get('type', 'model')
             diff[endpoint_name] = \
@@ -142,7 +143,8 @@ def on_state_change(settings):
         py_handler = settings['py_handler']
 
         log_info("Loading state from state file")
-        config = util._get_state_from_file(settings['state_file_path'])
+        state_file_path = os.environ['TABPY_STATE_PATH']
+        config = util._get_state_from_file(state_file_path)
         new_ps_state = TabPyState(config=config)
 
         (has_changes, changes) = _get_latest_service_state(settings, new_ps_state)
@@ -159,7 +161,7 @@ def on_state_change(settings):
 
                 py_handler.manage_request(DeleteObjects([object_name]))
 
-                cleanup_endpoint_files(object_name, settings['upload_dir'])
+                cleanup_endpoint_files(object_name)
 
             else:
                 endpoint_info = new_endpoints[object_name]
@@ -177,7 +179,7 @@ def on_state_change(settings):
 
                 # cleanup old version of endpoint files
                 if object_version > 2:
-                    cleanup_endpoint_files(object_name, settings['upload_dir'], [object_version, object_version - 1])
+                    cleanup_endpoint_files(object_name, [object_version, object_version - 1])
 
     except Exception as e:
         err_msg = format_exception(e, 'on_state_change')

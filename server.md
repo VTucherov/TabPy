@@ -113,6 +113,7 @@ This will install TabPy into your active Python environment regardless of whethe
 
 As the packages are installed, you will see the install locations listed in the command line. These might look like `/Users/username/anaconda/envs/Tableau-Python-Server/lib/python2.7/site-packages` or `\Users\username\anaconda\envs\Tableau-Python-Server\lib\site-packages` or `/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages` depending on your setup.
 
+<<<<<<< HEAD
 Navigate to the tabpy_server folder under `site-packages` and run `startup.bat` or `startup.sh` on Windows and Linux/MacOS respectively. You can specify a custom port number as an argument e.g. `startup.bat 9001`.
 
 If you are not running Anaconda, do not have the same virtual environment name as specified above, or do not have TabPy installed in the same directory structure as Anaconda expects it, you may just start tabpy.py from the commandline (e.g. 'python tabpy.py' or python3 tabpy.py').
@@ -128,6 +129,9 @@ Change settings by:
     - copy the template file from tabpy_server/common/config.py.template to tabpy_server/common/config.py and edit the settings that need changing.
 
 The template file is not used by the application but is used for documenting which settings may be modified and what the defaults are if no config file or environment variables are set.
+=======
+Navigate to the tabpy_server folder under `site-packages` and run `startup.bat` or `startup.sh` on Windows and Linux/MacOS respectively. You can specify a custom port number as an argument e.g. `startup.bat 9001`. 
+>>>>>>> parent of 19bb040... Merge pull request #92 from slewt/ConsistentConfig
 
 ## Updating TabPy
 You can update to a newer version by using the `-—upgrade` option in `pip`. 
@@ -212,8 +216,13 @@ Example response:
 
   - `description` is a string that is hardcoded in the `state.ini` file and can be edited there.
   - `creation_time` is the creation time in seconds since 1970-01-01, hardcoded in the `state.ini` file, where it can be edited.
+<<<<<<< HEAD
   - `state_path` is the state file path of the server (the value of the TABPY_STATE_PATH at the time the server was started).
   - `server_version` is a string provided by the server and is defined by the variable TABPY_SERVER_VERSION. Clients can use this information for compatibility checks.
+=======
+ - `state_path` is the state file path of the server (the value of the environment variable TABPY_STATE_PATH at the time the server was started).
+  - `server_version` is a hardcoded string provided by the server (defined in `server/common/config.py`). Clients can use this information for compatibility checks.
+>>>>>>> parent of 19bb040... Merge pull request #92 from slewt/ConsistentConfig
 
 See [TabPy Configuration](#tabpy-configuration) section for more information on modifying the settings.
 

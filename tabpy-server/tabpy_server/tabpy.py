@@ -26,6 +26,7 @@ from psws.python_service import PythonService
 from psws.python_service import PythonServiceHandler
 
 from common.util import format_exception
+from common.config import (DEFAULT_TABPY_PORT, TABPY_QUERY_OBJECT_PATH, SERVER_VERSION)
 from common.tabpy_logging import PYLogging, log_error, log_info, log_debug
 from common.messages import *
 from psws.callbacks import (init_ps_server, init_model_evaluator, on_state_change)
@@ -250,7 +251,7 @@ class ServiceInfoHandler(ManagementHandler):
         info['state_path'] = self.settings['state_file_path']
         info['name'] = self.tabpy.name
         info['description'] = self.tabpy.get_description()
-        info['server_version'] = self.settings['server_version']
+        info['server_version'] = SERVER_VERSION
         info['creation_time'] = self.tabpy.creation_time
         self.write(simplejson.dumps(info))
 
@@ -697,6 +698,7 @@ class QueryPlaneHandler(BaseHandler):
         log_debug("POST /query", endpoint_name=endpoint_name)
         self._process_query(endpoint_name, start)
 
+<<<<<<< HEAD
 
 def get_config():
     """Provide consistent mechanism for pulling in configuration.
@@ -777,15 +779,44 @@ def get_config():
     return settings, subdirectory
 
 
+=======
+>>>>>>> parent of 19bb040... Merge pull request #92 from slewt/ConsistentConfig
 def main():
+    args = parse_arguments()
+    port = args.port
+    if not port:
+        port = DEFAULT_TABPY_PORT
+    log_info("Loading state from state file")
+    state_file_path = os.environ['TABPY_STATE_PATH']
+    config = _get_state_from_file(state_file_path)
+    tabpy = TabPyState(config=config)
 
-    settings, subdirectory = get_config()
+    python_service_handler = PythonServiceHandler(PythonService())
+
+    state_file_path = os.path.realpath(
+        os.path.normpath(
+            os.path.expanduser(
+                os.environ.get('TABPY_STATE_PATH', './state'))))
+
+    # initialize settings for application handlers
+    settings = {
+        "compress_response" if TORNADO_MAJOR >= 4 else "gzip": True,
+        "tabpy": tabpy,
+        "py_handler": python_service_handler,
+        "port": port,
+        "state_file_path": state_file_path,
+        "static_path": os.path.join(os.path.dirname(__file__), "static")}
 
     print('Initializing TabPy...')
     tornado.ioloop.IOLoop.instance().run_sync(lambda: init_ps_server(settings))
     print('Done initializing TabPy.')
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
+
+    # Set subdirectory from config if applicable
+    subdirectory = ""
+    if config.has_option("Service Info", "Subdirectory"):
+        subdirectory = "/" + config.get("Service Info", "Subdirectory")
 
     # initialize Tornado application
     application = tornado.web.Application([
@@ -805,8 +836,13 @@ def main():
 
     init_model_evaluator(settings)
 
+<<<<<<< HEAD
     application.listen(settings['port'], address=settings['bind_ip'])
     print('Web service listening on {} port {}'.format(settings['bind_ip'], str(settings['port'])))
+=======
+    application.listen(port)
+    print('Web service listening on port ' + str(port))
+>>>>>>> parent of 19bb040... Merge pull request #92 from slewt/ConsistentConfig
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':
